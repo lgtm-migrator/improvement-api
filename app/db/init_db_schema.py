@@ -1,11 +1,17 @@
 import asyncio
 import os
+import sys
 from itertools import chain
+from os import pardir
+from os import path
 
 import asyncpg
 from dotenv import load_dotenv
 
-from app.db.schema import db_schema
+dir_path = path.dirname(path.abspath(__file__).replace("db", ""))
+sys.path.append(path.abspath(path.join(dir_path, pardir)))
+
+from app.db.schema import db_schema  # noqa: E402
 
 load_dotenv()
 
