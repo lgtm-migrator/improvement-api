@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "improvement-api"
+version = "0.1.0"
+description = "API for the Improvement web app"
+authors = ["Henri Kestiö <henri.kestio@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+fastapi = "^0.64.0"
+uvicorn = {extras = ["standard"], version = "^0.13.4"}
+python-dotenv = "^0.17.1"
+asyncpg = "^0.22.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+pre-commit = "^2.12.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
