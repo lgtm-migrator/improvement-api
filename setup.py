@@ -1,4 +1,5 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages
+from setuptools import setup
 
 
 setup(
@@ -6,5 +7,5 @@ setup(
     author_email="henri.kestio@gmail.com",
     name="improvement-api",
     packages=find_packages(exclude=["tests"]),
-    platforms=["POSIX"]
+    platforms=["POSIX"],
 )

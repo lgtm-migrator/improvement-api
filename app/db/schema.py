@@ -2,7 +2,7 @@
 # it allows for SQL syntax highlighting inside python multiline strings
 
 
-db_init = '''
+db_init = """
     --sql
     SET TIMEZONE='UTC';
 
@@ -23,10 +23,10 @@ db_init = '''
         END IF;
     END;
     $$ LANGUAGE 'plpgsql';
-'''
+"""
 
 
-users_table = '''
+users_table = """
     --sql
     CREATE TABLE IF NOT EXISTS users (
         user_uid UUID NOT NULL PRIMARY KEY,
@@ -46,10 +46,7 @@ users_table = '''
     BEFORE UPDATE ON users
     FOR EACH ROW
     EXECUTE PROCEDURE trigger_set_timestamp();
-'''
+"""
 
 
-db_schema: dict = {
-    "db_init": db_init,
-    "users_table": users_table
-}
+db_schema: dict = {"db_init": db_init, "users_table": users_table}

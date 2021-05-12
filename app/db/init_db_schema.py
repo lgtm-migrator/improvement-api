@@ -1,8 +1,8 @@
+import asyncio
 import os
 from itertools import chain
-import asyncpg
-import asyncio
 
+import asyncpg
 from dotenv import load_dotenv
 
 from app.db.schema import db_schema
@@ -21,7 +21,7 @@ async def init_db_schema():
     finally:
         await conn.close()
 
-    return print('DB initialized')
+    return print("DB initialized")
 
 
 if __name__ == "__main__":
