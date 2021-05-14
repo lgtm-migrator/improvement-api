@@ -7,7 +7,7 @@ client = TestClient(app)
 
 
 def test_should_register_a_new_user_with_token():
-    response = client.post("/api/users/register", json={"username": "testihenri", "password": "vahvasalasana"})
+    response = client.post("/api/auth/register", json={"username": "testihenri", "password": "vahvasalasana"})
     assert response.status_code == 200
 
     data = response.json()
@@ -20,7 +20,7 @@ def test_should_register_a_new_user_with_token():
 
 
 def test_register_should_fail_with_existing_username():
-    response = client.post("/api/users/register", json={"username": "testihenri", "password": "vahvasalasana"})
+    response = client.post("/api/auth/register", json={"username": "testihenri", "password": "vahvasalasana"})
     assert response.status_code == 400
 
     data = response.json()

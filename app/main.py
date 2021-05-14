@@ -1,16 +1,21 @@
+import sys
+from os import pardir
+from os import path
+
 import uvicorn
-from dotenv import load_dotenv
 from fastapi import FastAPI
 
-from app.api.router import api_router
+dir_path = path.dirname(path.abspath(__file__).replace("db", ""))
+sys.path.append(path.abspath(path.join(dir_path, pardir)))
 
-load_dotenv()
+from app.api.router import api_router  # noqa: E402
+from app.core.config import settings  # noqa: E402
 
 
 app = FastAPI(title="Improvement API")
 
 
-app.include_router(api_router, prefix="/api")
+app.include_router(api_router, prefix=settings.API_STR)
 
 
 if __name__ == "__main__":
