@@ -1,36 +1,17 @@
-import os
-from datetime import datetime
 from datetime import timedelta
-from typing import Optional
 
-import asyncpg
-from jose import jwt
-from passlib.context import CryptContext
+from asyncpg import PostgresError
+from fastapi import HTTPException
 
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
-
-
-pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
+from app.core.config import settings
+from app.core.security import create_access_token
+from app.core.security import get_password_hash
+from app.db.decorators import dbconn
+from app.models.user import UserCreate
 
 
-def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
-
-
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, os.getenv("SECRET_KEY"), algorithm=ALGORITHM)
-    return encoded_jwt
-
-
-async def get_user_by_username(username: str):
-    conn = await asyncpg.connect(os.getenv("DATABASE_URL"))
+@dbconn
+async def get_user_by_username(conn, username: str):
     try:
         user_by_username = f"""
             SELECT username FROM users WHERE username='{username}';
@@ -38,14 +19,12 @@ async def get_user_by_username(username: str):
         user = await conn.fetchrow(user_by_username)
 
         return user
-    except Exception as err:
-        print(err)
-    finally:
-        await conn.close()
+    except PostgresError:
+        raise HTTPException(status_code=500, detail="Error while fetching a user.")
 
 
-async def create_user_with_token(user):
-    conn = await asyncpg.connect(os.getenv("DATABASE_URL"))
+@dbconn
+async def create_user_with_token(conn, user: UserCreate):
     try:
         hashed_pwd = get_password_hash(user.password)
 
@@ -80,11 +59,9 @@ async def create_user_with_token(user):
         new_user = await conn.fetchrow(insert_user)
 
         access_token = create_access_token(
-            data={"sub": f"username:{user.username}"}, expires_delta=timedelta(ACCESS_TOKEN_EXPIRE_MINUTES)
+            data={"sub": f"username:{user.username}"}, expires_delta=timedelta(settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         )
 
         return {**new_user, "token_data": {"access_token": access_token, "token_type": "bearer"}}
-    except Exception as err:
-        print(err)
-    finally:
-        await conn.close()
+    except PostgresError:
+        raise HTTPException(status_code=500, detail="Error while trying to create a user.")
