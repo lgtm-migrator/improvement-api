@@ -1,4 +1,5 @@
 from typing import Callable
+
 from .utils import create_db_connection
 
 
@@ -10,6 +11,7 @@ def dbconn(db_function: Callable):
     Args:
         db_function (FunctionType): function for database queries/mutations
     """
+
     async def decorator(*args):
         conn = await create_db_connection()
         try:

@@ -1,6 +1,6 @@
 import secrets
-from dotenv import load_dotenv
 
+from dotenv import load_dotenv
 from pydantic import BaseSettings
 
 
