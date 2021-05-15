@@ -1,5 +1,6 @@
 from asyncpg import PostgresError
 from fastapi import HTTPException
+from pydantic import UUID4
 
 from app.core.security import get_password_hash
 from app.db.decorators import dbconn
@@ -15,6 +16,19 @@ async def get_user_by_username(conn, username: str) -> UserInDB:
             SELECT * FROM users WHERE username='{username}';
         """
         user = await conn.fetchrow(user_by_username)
+
+        return user
+    except PostgresError:
+        raise HTTPException(status_code=500, detail="Error while fetching a user.")
+
+
+@dbconn
+async def get_user_by_uuid(conn, uuid: UUID4) -> UserInDB:
+    try:
+        user_by_uuid = f"""
+            SELECT * FROM users WHERE user_uid='{uuid}';
+        """
+        user = await conn.fetchrow(user_by_uuid)
 
         return user
     except PostgresError:
@@ -39,6 +53,6 @@ async def create_user(conn, user: UserCreate) -> User:
         """
 
         new_user = await conn.fetchrow(insert_user)
-        return new_user
+        return User(**new_user)
     except PostgresError:
         raise HTTPException(status_code=500, detail="Error while trying to create a user.")
