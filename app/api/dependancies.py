@@ -8,9 +8,9 @@ from jose import jwt
 from pydantic import ValidationError
 
 from app.core.config import settings
+from app.crud.crud_user import get_user_by_uuid
 from app.models.token import TokenPayload
 from app.models.user import UserDBBase
-from app.crud.crud_user import get_user_by_uuid
 
 
 reusable_oauth2 = OAuth2PasswordBearer(tokenUrl=f"{settings.API_STR}/auth/access-token")
@@ -18,9 +18,7 @@ reusable_oauth2 = OAuth2PasswordBearer(tokenUrl=f"{settings.API_STR}/auth/access
 
 async def get_current_user(token: str = Depends(reusable_oauth2)) -> UserDBBase:
     try:
-        payload = jwt.decode(
-            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
-        )
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         token_data = TokenPayload(**payload)
         find_uuid = re.search("user_uuid:(.*?)username", token_data.sub)
         if not find_uuid:

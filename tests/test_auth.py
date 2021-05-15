@@ -9,7 +9,6 @@ client = TestClient(app)
 
 
 test_user = {"username": "testuser", "password": "verystrongpassword"}
-user_res_dict = {"user_uid": 1, "username": 2, "token_data": 3}
 access_res_dict = {"access_token": 1, "token_type": 2}
 
 

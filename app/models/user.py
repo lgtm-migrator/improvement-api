@@ -13,8 +13,6 @@ from pydantic import EmailStr
 from pydantic import Field
 from pydantic import UUID4
 
-from .token import Token
-
 
 # Shared properties
 class UserBase(BaseModel):

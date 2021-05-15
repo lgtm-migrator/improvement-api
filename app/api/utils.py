@@ -1,7 +1,7 @@
 from typing import Union
 
-from app.crud.crud_user import get_user_by_username
 from app.core.security import verify_password
+from app.crud.crud_user import get_user_by_username
 from app.models.user import UserDBBase
 
 
