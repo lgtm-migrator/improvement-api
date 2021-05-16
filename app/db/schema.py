@@ -1,7 +1,6 @@
 # the --sql flag inside the SQL strings is for a vs code extension python-string-sql
 # it allows for SQL syntax highlighting inside python multiline strings
 
-
 db_init = """
     --sql
     SET TIMEZONE='UTC';
@@ -12,6 +11,7 @@ db_init = """
     -- Trigger function for updating a created at column on a table
 
     --sql
+    -- https://stackoverflow.com/a/26284695
     CREATE OR REPLACE FUNCTION trigger_set_timestamp()
     RETURNS TRIGGER AS $$
     BEGIN

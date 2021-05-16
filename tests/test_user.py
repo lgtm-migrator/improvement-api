@@ -8,12 +8,11 @@ from app.models.user import UserDBBase
 client = TestClient(app)
 
 
-test_user = {"username": "testuser", "password": "verystrongpassword"}
 user_data_keys = UserDBBase.schema().get("properties").keys()
 
 
-def test_should_return_user_data():
-    response = client.post("/api/auth/access-token", data=test_user)
+def test_should_return_user_data(user_in_db):
+    response = client.post("/api/auth/access-token", data=user_in_db)
     assert response.status_code == 200
 
     data = response.json()
@@ -28,4 +27,4 @@ def test_should_return_user_data():
 
     data = response.json()
     assert user_data_keys == data.keys()
-    assert test_user.get("username") == data.get("username")
+    assert user_in_db.get("username") == data.get("username")

@@ -3,6 +3,7 @@ import sys
 from itertools import chain
 from os import pardir
 from os import path
+from typing import Optional
 
 import asyncpg
 
@@ -16,8 +17,13 @@ from app.core.config import settings  # noqa: E402
 schema = "".join(list(chain(*db_schema.values())))
 
 
-async def init_db_schema():
-    conn = await asyncpg.connect(f"{settings.DATABASE_URL}")
+async def init_db_schema(test: Optional[bool] = False):
+    if test:
+        print("Using test db url...")
+        conn = await asyncpg.connect(settings.TEST_DATABASE_URL)
+    else:
+        conn = await asyncpg.connect(settings.DATABASE_URL)
+
     try:
         await conn.execute(schema)
     except Exception as err:

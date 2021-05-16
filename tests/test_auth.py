@@ -8,11 +8,10 @@ from app.main import app
 client = TestClient(app)
 
 
-test_user = {"username": "testuser", "password": "verystrongpassword"}
 access_res_dict = {"access_token": 1, "token_type": 2}
 
 
-def test_should_register_a_new_user_and_return_token():
+def test_should_register_a_new_user_and_return_token(test_user):
     response = client.post("/api/auth/register", data=test_user)
     assert response.status_code == 200
 
@@ -26,7 +25,7 @@ def test_should_register_a_new_user_and_return_token():
     assert payload_sub.find(test_user.get("username")) != -1
 
 
-def test_register_should_fail_with_existing_username():
+def test_register_should_fail_with_existing_username(test_user):
     response = client.post("/api/auth/register", data=test_user)
     assert response.status_code == 400
 
@@ -35,7 +34,7 @@ def test_register_should_fail_with_existing_username():
     assert data.get("detail") == "This username is already taken."
 
 
-def test_should_create_access_token():
+def test_should_create_access_token(test_user):
     response = client.post("/api/auth/access-token", data=test_user)
     assert response.status_code == 200
 
