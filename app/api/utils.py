@@ -17,4 +17,4 @@ async def authenticate(username: str, password: str) -> Union[UserDBBase, None]:
 
 
 def user_token_sub(user) -> str:
-    return f"user_uuid:{user.user_uid}username:{user.username}"
+    return f"user_uuid:{user.user_uuid}username:{user.username}"

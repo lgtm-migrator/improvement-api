@@ -1,14 +1,14 @@
-name: Improvement API CI
+name: Improvement API CI/CD
 
 on:
   push:
     branches: [master]
+    paths-ignore:
+      - '**/README.md'
   pull_request:
     branches: [master]
-
-env:
-  DATABASE_URL: ${{ secrets.DATABASE_URL }}
-  TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/improvement_test
+    paths-ignore:
+      - '**/README.md'
 
 jobs:
   ci:
@@ -45,4 +45,21 @@ jobs:
       - name: Install dependencies with Poetry
         run: poetry install
       - name: Run pytest
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/improvement_test
+          BACKEND_CORS_ORIGINS: ${{ secrets.BACKEND_CORS_ORIGINS }}
         run: poetry run pytest
+
+  cd:
+    name: Deploy to Heroku
+    needs: ci
+    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && needs.ci.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: akhileshns/heroku-deploy@v3.12.12
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}

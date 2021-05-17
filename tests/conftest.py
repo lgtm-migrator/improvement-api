@@ -14,7 +14,7 @@ def init_test_db():
         conn = await asyncpg.connect(settings.TEST_DATABASE_URL)
         hashed_pwd = get_password_hash("superstrongpassword")
         insert_existing_test_user = f"""
-            INSERT INTO users (user_uid, username, email, is_active, password) values ('1088292a-46cc-4258-85b6-9611f09e1830', 'testuser_exists', 'testuser_exists@mail.com', true, '{hashed_pwd}');
+            INSERT INTO users (user_uuid, username, email, is_active, password) values ('1088292a-46cc-4258-85b6-9611f09e1830', 'testuser_exists', 'testuser_exists@mail.com', true, '{hashed_pwd}');
         """
         try:
             await conn.execute(insert_existing_test_user)

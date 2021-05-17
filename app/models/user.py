@@ -20,7 +20,7 @@ class UserBase(BaseModel):
 
 
 class User(BaseModel):
-    user_uid: UUID4
+    user_uuid: UUID4
     username: str = Field(..., max_length=150)
 
 

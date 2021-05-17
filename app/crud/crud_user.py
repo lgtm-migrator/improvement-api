@@ -26,7 +26,7 @@ async def get_user_by_username(conn, username: str) -> UserInDB:
 async def get_user_by_uuid(conn, uuid: UUID4) -> UserInDB:
     try:
         user_by_uuid = f"""
-            SELECT * FROM users WHERE user_uid='{uuid}';
+            SELECT * FROM users WHERE user_uuid='{uuid}';
         """
         user = await conn.fetchrow(user_by_uuid)
 
@@ -49,7 +49,7 @@ async def create_user(conn, user: UserCreate) -> User:
                 '{user.username}',
                 true,
                 '{hashed_pwd}'
-            ) RETURNING user_uid, username;
+            ) RETURNING user_uuid, username;
         """
 
         new_user = await conn.fetchrow(insert_user)
