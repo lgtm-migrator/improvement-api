@@ -1,5 +1,5 @@
 from fastapi.testclient import TestClient
-from requests.structures import CaseInsensitiveDict
+from requests.structures import CaseInsensitiveDict  # type: ignore
 
 from app.main import app
 from app.models.user import UserDBBase
