@@ -15,6 +15,12 @@ repos:
       - id: mypy
         exclude: ^testing/resources/
   - repo: https://github.com/PyCQA/flake8
+
     rev: 3.9.2
     hooks:
       - id: flake8
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.0
+    hooks:
+      - id: bandit
+        exclude: tests/
