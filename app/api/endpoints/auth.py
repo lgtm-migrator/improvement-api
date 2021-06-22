@@ -24,6 +24,12 @@ async def register(form_data: OAuth2PasswordRequestForm = Depends()):
     if user_exists:
         raise HTTPException(status_code=400, detail="This username is already taken.")
 
+    if len(form_data.username) < 3:
+        raise HTTPException(status_code=400, detail="The username needs to be at least 3 characters.")
+
+    if len(form_data.password) < 6:
+        raise HTTPException(status_code=400, detail="The password length needs to be at least 6 characters.")
+
     new_user = await create_user(form_data)
 
     access_token = create_access_token(
