@@ -2,6 +2,7 @@ import asyncio
 
 import asyncpg
 import pytest
+from asyncpg import PostgresError
 
 from app.core.config import settings
 from app.core.security import get_password_hash
@@ -13,12 +14,12 @@ def init_test_db():
     async def create_existing_test_user():
         conn = await asyncpg.connect(settings.TEST_DATABASE_URL)
         hashed_pwd = get_password_hash("superstrongpassword")
-        insert_existing_test_user = f"""
-            INSERT INTO users (user_uuid, username, email, is_active, password) values ('1088292a-46cc-4258-85b6-9611f09e1830', 'testuser_exists', 'testuser_exists@mail.com', true, '{hashed_pwd}');
+        insert_existing_test_user = """
+            INSERT INTO users (user_uuid, username, email, is_active, password) values ('1088292a-46cc-4258-85b6-9611f09e1830', 'testuser_exists', 'testuser_exists@mail.com', true, $1);
         """
         try:
-            await conn.execute(insert_existing_test_user)
-        except Exception as err:
+            await conn.execute(insert_existing_test_user, hashed_pwd)
+        except PostgresError as err:
             print(err)
         finally:
             await conn.close()
@@ -48,7 +49,7 @@ def clean_up():
         """
         try:
             await conn.execute(drop_tables)
-        except Exception as err:
+        except PostgresError as err:
             print(err)
         finally:
             await conn.close()
@@ -56,13 +57,13 @@ def clean_up():
     asyncio.get_event_loop().run_until_complete(clear_test_db())
 
 
-def pytest_sessionstart(session):
+def pytest_sessionstart():
     """whole test run starts."""
     settings.DATABASE_URL = settings.TEST_DATABASE_URL
     init_test_db()
 
 
-def pytest_sessionfinish(session, exitstatus):
+def pytest_sessionfinish():
     """whole test run finishes."""
     clean_up()
 

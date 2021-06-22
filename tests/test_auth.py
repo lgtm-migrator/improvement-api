@@ -11,8 +11,7 @@ client = TestClient(app)
 access_res_dict = {"access_token": 1, "token_type": 2}
 
 
-def test_should_register_a_new_user_and_return_token(test_user):
-    response = client.post("/api/auth/register", data=test_user)
+def check_access_token_response(response, test_user):
     assert response.status_code == 200
 
     data = response.json()
@@ -23,6 +22,11 @@ def test_should_register_a_new_user_and_return_token(test_user):
     payload_sub = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]).get("sub")
 
     assert payload_sub.find(test_user.get("username")) != -1
+
+
+def test_should_register_a_new_user_and_return_token(test_user):
+    response = client.post("/api/auth/register", data=test_user)
+    check_access_token_response(response, test_user)
 
 
 def test_register_should_fail_with_existing_username(test_user):
@@ -36,13 +40,4 @@ def test_register_should_fail_with_existing_username(test_user):
 
 def test_should_create_access_token(test_user):
     response = client.post("/api/auth/access-token", data=test_user)
-    assert response.status_code == 200
-
-    data = response.json()
-
-    assert access_res_dict.keys() >= {"access_token", "token_type"}
-
-    token = data.get("access_token")
-    payload_sub = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]).get("sub")
-
-    assert payload_sub.find(test_user.get("username")) != -1
+    check_access_token_response(response, test_user)
