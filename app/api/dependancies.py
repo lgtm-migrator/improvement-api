@@ -8,7 +8,7 @@ from jose import jwt
 from pydantic import ValidationError
 
 from app.core.config import settings
-from app.crud.crud_user import get_user_by_uuid
+from app.crud.user import get_user_by_uuid
 from app.models.token import TokenPayload
 from app.models.user import UserDBBase
 

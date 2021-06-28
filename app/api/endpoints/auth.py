@@ -9,8 +9,8 @@ from app.api.utils import authenticate
 from app.api.utils import user_token_sub
 from app.core.config import settings
 from app.core.security import create_access_token
-from app.crud.crud_user import create_user
-from app.crud.crud_user import get_user_by_username
+from app.crud.user import create_user
+from app.crud.user import get_user_by_username
 from app.models.token import Token
 
 
