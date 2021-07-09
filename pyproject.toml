@@ -11,14 +11,14 @@ uvicorn = {extras = ["standard"], version = "^0.13.4"}
 asyncpg = "^0.22.0"
 requests = "^2.25.1"
 pydantic = {extras = ["email"], version = "^1.8.2"}
-python-jose = {extras = ["cryptography"], version = "^3.2.0"}
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 passlib = {extras = ["argon2"], version = "^1.7.4"}
 python-dotenv = "^0.17.1"
 python-multipart = "^0.0.5"
 
 [tool.poetry.dev-dependencies]
-pytest = "^6.0"
-pre-commit = "^2.12.1"
+pytest = "^6.2.4"
+pre-commit = "^2.13.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
