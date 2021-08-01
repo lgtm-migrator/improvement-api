@@ -10,9 +10,10 @@ sys.path.append(path.abspath(path.join(dir_path, pardir)))
 
 from app.api.router import api_router  # noqa: E402
 from app.core.config import settings  # noqa: E402
+from app.utils.openapi import simplify_operation_ids  # noqa: E402
 
 
-app = FastAPI(title="Improvement API")
+app = FastAPI(title="Improvement API", redoc_url="/docs", docs_url=None)
 
 
 app.add_middleware(
@@ -25,3 +26,6 @@ app.add_middleware(
 
 
 app.include_router(api_router, prefix=settings.API_STR)
+
+
+simplify_operation_ids(app)

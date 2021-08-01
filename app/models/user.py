@@ -8,18 +8,19 @@ Modified for my use
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
 from pydantic import EmailStr
 from pydantic import Field
 from pydantic import UUID4
 
+from app.models.api_model import APIModel
+
 
 # Shared properties
-class UserBase(BaseModel):
+class UserBase(APIModel):
     username: str = Field(..., max_length=150)
 
 
-class User(BaseModel):
+class User(APIModel):
     user_uuid: UUID4
     username: str = Field(..., max_length=150)
 
