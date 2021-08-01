@@ -8,7 +8,7 @@ from app.main import app
 client = TestClient(app)
 
 
-access_res_dict = {"access_token": 1, "token_type": 2}
+access_res_dict = {"accessToken": 1, "tokenType": 2}
 
 
 def check_access_token_response(response, test_user):
@@ -16,9 +16,9 @@ def check_access_token_response(response, test_user):
 
     data = response.json()
 
-    assert access_res_dict.keys() >= {"access_token", "token_type"}
+    assert data.keys() >= access_res_dict.keys()
 
-    token = data.get("access_token")
+    token = data.get("accessToken")
     payload_sub = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]).get("sub")
 
     assert payload_sub.find(test_user.get("username")) != -1

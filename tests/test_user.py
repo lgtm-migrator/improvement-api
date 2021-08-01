@@ -16,7 +16,7 @@ def test_should_return_user_data(user_in_db):
     assert response.status_code == 200
 
     data = response.json()
-    token = data.get("access_token")
+    token = data.get("accessToken")
 
     headers = CaseInsensitiveDict()
     headers["Accept"] = "application/json"
