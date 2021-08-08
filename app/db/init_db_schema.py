@@ -14,6 +14,7 @@ from app.core.config import settings  # noqa: E402
 
 
 SCHEMA_DIR = "app/db/schema"
+FUNCTION_DIR = "app/db/functions"
 
 
 def read_sql_file(file_path):
@@ -32,6 +33,16 @@ def create_db_schema():
     return schema
 
 
+def create_db_functions():
+    functions = ""
+    for file in listdir(FUNCTION_DIR):
+        if file.endswith(".sql"):
+            file_path = f"{FUNCTION_DIR}/{file}"
+            file_content = read_sql_file(file_path)
+            functions += f"{file_content}\n"
+    return functions
+
+
 async def init_db_schema(test: Optional[bool] = False):
     if test:
         print("Using test db url...")
@@ -41,6 +52,9 @@ async def init_db_schema(test: Optional[bool] = False):
     try:
         schema = create_db_schema()
         await conn.execute(schema)
+
+        functions = create_db_functions()
+        await conn.execute(functions)
     except Exception as err:
         print(err)
     finally:

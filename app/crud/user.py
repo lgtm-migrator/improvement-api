@@ -12,47 +12,29 @@ from app.models.user import UserInDB
 @dbconn
 async def get_user_by_username(conn, username: str) -> UserInDB:
     try:
-        user_by_username = """
-            SELECT * FROM users WHERE username = $1;
-        """
-        user = await conn.fetchrow(user_by_username, username)
+        user = await conn.fetchrow("SELECT * FROM get_user_by_username($1);", username)
 
         return user
     except PostgresError:
-        raise HTTPException(status_code=500, detail="Error while fetching a user.")
+        raise HTTPException(status_code=500, detail="Error while fetching a user from database.")
 
 
 @dbconn
 async def get_user_by_uuid(conn, uuid: UUID4) -> UserInDB:
     try:
-        user_by_uuid = """
-            SELECT * FROM users WHERE user_uuid = $1;
-        """
-        user = await conn.fetchrow(user_by_uuid, uuid)
+        user = await conn.fetchrow("SELECT * FROM get_user_by_uuid($1);", uuid)
 
         return user
     except PostgresError:
-        raise HTTPException(status_code=500, detail="Error while fetching a user.")
+        raise HTTPException(status_code=500, detail="Error while fetching a user from database.")
 
 
 @dbconn
 async def create_user(conn, user: UserCreate) -> User:
     try:
         hashed_pwd = get_password_hash(user.password)
+        new_user = await conn.fetchrow("SELECT * FROM create_user($1, $2);", user.username, hashed_pwd)
 
-        insert_user = """
-            INSERT INTO users (
-                username,
-                is_active,
-                password
-            ) VALUES (
-                $1,
-                true,
-                $2
-            ) RETURNING user_uuid, username;
-        """
-
-        new_user = await conn.fetchrow(insert_user, user.username, hashed_pwd)
         return User(**new_user)
     except PostgresError:
-        raise HTTPException(status_code=500, detail="Error while trying to create a user.")
+        raise HTTPException(status_code=500, detail="Error while trying to create a user in database.")

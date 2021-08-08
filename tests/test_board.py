@@ -30,7 +30,7 @@ def create_three_new_boards():
     new_boards = []
 
     for i in range(1, 4):
-        new_boards.append({"board_name": f"test board {i}", "owner_uuid": "1088292a-46cc-4258-85b6-9611f09e1830"})
+        new_boards.append({"boardName": f"test board {i}", "ownerUuid": "1088292a-46cc-4258-85b6-9611f09e1830"})
 
     return new_boards
 

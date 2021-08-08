@@ -10,23 +10,7 @@ from app.models.board import BoardCreate
 @dbconn
 async def create_board(conn, board: BoardCreate):
     try:
-        insert_board = """
-            INSERT INTO boards (
-                board_name,
-                owner_uuid
-            )
-            VALUES ($1,$2)
-            RETURNING *;
-        """
-
-        new_board = await conn.fetchrow(insert_board, board.board_name, board.owner_uuid)
-
-        insert_user_board = """
-            INSERT INTO user_boards
-            VALUES ($1,$2);
-        """
-
-        await conn.fetchrow(insert_user_board, new_board["owner_uuid"], new_board["board_uuid"])
+        new_board = await conn.fetchrow("SELECT * FROM create_board($1,$2);", board.board_name, board.owner_uuid)
 
         return new_board
     except PostgresError:
