@@ -41,14 +41,14 @@ async def get_one_user_board(board_uuid: UUID4, current_user: UserDBBase = Depen
     return Board(**user_board) if user_board else Response(status_code=HTTP_404_NOT_FOUND)
 
 
-@board_router.put("/update", dependencies=[Depends(get_current_active_user)], response_model=Board)
-async def update_user_board(updated_board_data: Board, user_uuid: UUID4):
-    new_board = await update_board(updated_board_data, user_uuid)
+@board_router.put("/update", response_model=Board)
+async def update_user_board(updated_board_data: Board, current_user: UserDBBase = Depends(get_current_active_user)):
+    new_board = await update_board(updated_board_data, current_user.user_uuid)
 
     return Board(**new_board)
 
 
-@board_router.delete("/delete")
+@board_router.delete("/delete/{board_uuid}")
 async def delete_user_board(board_uuid: UUID4, current_user: UserDBBase = Depends(get_current_active_user)):
     delete_board_response = await delete_board(board_uuid, current_user.user_uuid)
 

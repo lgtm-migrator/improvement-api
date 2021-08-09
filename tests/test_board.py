@@ -1,5 +1,7 @@
+from random import shuffle
 from typing import Any
 from typing import Optional
+from uuid import uuid4
 
 from fastapi.testclient import TestClient
 from requests.structures import CaseInsensitiveDict  # type: ignore
@@ -48,9 +50,7 @@ def test_should_create_new_boards():
 
 def test_should_get_user_boards():
     # Fetch multiple boards
-    response = client.get(
-        "/api/board/list", params={"user_uuid": "1088292a-46cc-4258-85b6-9611f09e1830"}, headers=headers
-    )
+    response = client.get("/api/board/list", headers=headers)
     assert response.status_code == 200
 
     data = response.json()
@@ -64,27 +64,24 @@ def test_should_get_user_boards():
     # Fetch one board
     response = client.get(
         f"/api/board/list/{first_board_uuid}",
-        params={"userUuid": "1088292a-46cc-4258-85b6-9611f09e1830"},
         headers=headers,
     )
     assert response.status_code == 200
 
 
 def test_should_update_user_board():
-    response = client.get(
-        "/api/board/list", params={"userUuid": "1088292a-46cc-4258-85b6-9611f09e1830"}, headers=headers
-    )
+    response = client.get("/api/board/list", headers=headers)
     data = response.json()
 
     updated_board = {
         "boardUuid": data[0].get("boardUuid"),  # just use some uuid from the first response
         "boardName": "test board booyaa",
         "ownerUuid": "1088292a-46cc-4258-85b6-9611f09e1830",
+        "columnOrder": [str(uuid4()), str(uuid4()), str(uuid4())],
     }
 
     response = client.put(
         "/api/board/update",
-        params={"user_uuid": "1088292a-46cc-4258-85b6-9611f09e1830"},
         json=updated_board,
         headers=headers,
     )
@@ -93,26 +90,22 @@ def test_should_update_user_board():
     data = response.json()
 
     assert data.get("boardName") == "test board booyaa"
+    assert len(data.get("columnOrder")) == 3
 
 
 def test_should_delete_user_board():
-    response = client.get(
-        "/api/board/list", params={"user_uuid": "1088292a-46cc-4258-85b6-9611f09e1830"}, headers=headers
-    )
+    response = client.get("/api/board/list", headers=headers)
     board_uuid = response.json()[0].get("boardUuid")
 
     response = client.delete(
-        "/api/board/delete",
-        params={"user_uuid": "1088292a-46cc-4258-85b6-9611f09e1830", "board_uuid": board_uuid},
+        f"/api/board/delete/{board_uuid}",
         headers=headers,
     )
     assert response.status_code == 200
 
     data = response.json()
-    assert len(data) == 0
+    assert data[0].get("delete_board") is None  # noqa: E711
 
     # check that the board isn't found anymore
-    response = client.get(
-        f"/api/board/list/{board_uuid}", params={"userUuid": "1088292a-46cc-4258-85b6-9611f09e1830"}, headers=headers
-    )
+    response = client.get(f"/api/board/list/{board_uuid}", headers=headers)
     assert response.status_code == 404

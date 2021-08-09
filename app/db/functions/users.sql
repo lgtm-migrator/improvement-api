@@ -8,6 +8,7 @@ CREATE TYPE user_info AS (
     updated_at TIMESTAMP
 );
 
+
 CREATE TYPE new_user_info AS (
     user_uuid UUID,
     username TEXT

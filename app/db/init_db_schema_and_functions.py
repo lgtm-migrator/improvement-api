@@ -12,9 +12,8 @@ sys.path.append(path.abspath(path.join(dir_path, pardir)))
 
 from app.core.config import settings  # noqa: E402
 
-
-SCHEMA_DIR = "app/db/schema"
-FUNCTION_DIR = "app/db/functions"
+SCHEMA_DIR = f"{dir_path}/db/schema"
+FUNCTION_DIR = f"{dir_path}/db/functions"
 
 
 def read_sql_file(file_path):
@@ -43,25 +42,25 @@ def create_db_functions():
     return functions
 
 
-async def init_db_schema(test: Optional[bool] = False):
+async def init_db_schema_and_functions(test: Optional[bool] = False):
     if test:
         print("Using test db url...")
         conn = await asyncpg.connect(settings.TEST_DATABASE_URL)
     else:
         conn = await asyncpg.connect(settings.DATABASE_URL)
+
     try:
         schema = create_db_schema()
-        await conn.execute(schema)
-
         functions = create_db_functions()
-        await conn.execute(functions)
+
+        await conn.execute(f"{schema} {functions}")
     except Exception as err:
         print(err)
     finally:
         await conn.close()
 
-    return print("DB initialized")
+    return print("DB schema initialized")
 
 
 if __name__ == "__main__":
-    asyncio.get_event_loop().run_until_complete(init_db_schema())
+    asyncio.get_event_loop().run_until_complete(init_db_schema_and_functions())
