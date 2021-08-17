@@ -15,6 +15,10 @@ from app.core.config import settings  # noqa: E402
 SCHEMA_DIR = f"{dir_path}/db/schema"
 FUNCTION_DIR = f"{dir_path}/db/functions"
 
+# sql files where the order of executing them matters
+# when initializing db for tests
+init_schema_files = ["init.sql", "users.sql"]
+
 
 def read_sql_file(file_path):
     with open(file_path, "r") as f:
@@ -24,8 +28,9 @@ def read_sql_file(file_path):
 
 def create_db_schema():
     schema = read_sql_file(f"{SCHEMA_DIR}/init.sql")
+    schema += read_sql_file(f"{SCHEMA_DIR}/users.sql")
     for file in listdir(SCHEMA_DIR):
-        if file.endswith(".sql") and file != "init.sql":
+        if file.endswith(".sql") and file not in init_schema_files:
             file_path = f"{SCHEMA_DIR}/{file}"
             file_content = read_sql_file(file_path)
             schema += f"{file_content}\n"
@@ -59,7 +64,7 @@ async def init_db_schema_and_functions(test: Optional[bool] = False):
     finally:
         await conn.close()
 
-    return print("DB schema initialized")
+    return print("DB schema and functions initialized")
 
 
 if __name__ == "__main__":

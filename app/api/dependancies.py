@@ -10,13 +10,13 @@ from pydantic import ValidationError
 from app.core.config import settings
 from app.crud.user import get_user_by_uuid
 from app.models.token import TokenPayload
-from app.models.user import UserDBBase
+from app.models.user import User
 
 
 reusable_oauth2 = OAuth2PasswordBearer(tokenUrl=f"{settings.API_STR}/auth/access-token")
 
 
-async def get_current_user(token: str = Depends(reusable_oauth2)) -> UserDBBase:
+async def get_current_user(token: str = Depends(reusable_oauth2)) -> User:
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         token_data = TokenPayload(**payload)
@@ -35,10 +35,10 @@ async def get_current_user(token: str = Depends(reusable_oauth2)) -> UserDBBase:
     user = await get_user_by_uuid(user_uuid)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return UserDBBase(**user)
+    return User(**user)
 
 
-def get_current_active_user(current_user: UserDBBase = Depends(get_current_user)) -> UserDBBase:
+def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user

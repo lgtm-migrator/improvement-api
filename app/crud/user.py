@@ -4,7 +4,7 @@ from pydantic import UUID4
 
 from app.core.security import get_password_hash
 from app.db.decorators import dbconn
-from app.models.user import User
+from app.models.user import UserBase
 from app.models.user import UserCreate
 from app.models.user import UserInDB
 
@@ -30,11 +30,11 @@ async def get_user_by_uuid(conn, uuid: UUID4) -> UserInDB:
 
 
 @dbconn
-async def create_user(conn, user: UserCreate) -> User:
+async def create_user(conn, user: UserCreate) -> UserBase:
     try:
         hashed_pwd = get_password_hash(user.password)
         new_user = await conn.fetchrow("SELECT * FROM create_user($1, $2);", user.username, hashed_pwd)
 
-        return User(**new_user)
+        return UserBase(**new_user)
     except PostgresError:
         raise HTTPException(status_code=500, detail="Error while trying to create a user in database.")

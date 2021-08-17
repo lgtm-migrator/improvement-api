@@ -14,7 +14,7 @@ from app.crud.board import get_user_boards
 from app.crud.board import update_board
 from app.models.board import Board
 from app.models.board import BoardCreate
-from app.models.user import UserDBBase
+from app.models.user import User
 
 
 board_router = APIRouter()
@@ -28,28 +28,28 @@ async def create_new_board(board_data: BoardCreate):
 
 
 @board_router.get("/list", response_model=List[Board])
-async def list_user_boards(current_user: UserDBBase = Depends(get_current_active_user)):
+async def list_user_boards(current_user: User = Depends(get_current_active_user)):
     user_boards = await get_user_boards(current_user.user_uuid)
 
     return user_boards
 
 
 @board_router.get("/list/{board_uuid}", response_model=Board)
-async def get_one_user_board(board_uuid: UUID4, current_user: UserDBBase = Depends(get_current_active_user)):
+async def get_one_user_board(board_uuid: UUID4, current_user: User = Depends(get_current_active_user)):
     user_board = await get_user_board(current_user.user_uuid, board_uuid)
 
     return Board(**user_board) if user_board else Response(status_code=HTTP_404_NOT_FOUND)
 
 
 @board_router.put("/update", response_model=Board)
-async def update_user_board(updated_board_data: Board, current_user: UserDBBase = Depends(get_current_active_user)):
+async def update_user_board(updated_board_data: Board, current_user: User = Depends(get_current_active_user)):
     new_board = await update_board(updated_board_data, current_user.user_uuid)
 
     return Board(**new_board)
 
 
 @board_router.delete("/delete/{board_uuid}")
-async def delete_user_board(board_uuid: UUID4, current_user: UserDBBase = Depends(get_current_active_user)):
+async def delete_user_board(board_uuid: UUID4, current_user: User = Depends(get_current_active_user)):
     delete_board_response = await delete_board(board_uuid, current_user.user_uuid)
 
     return delete_board_response
