@@ -6,7 +6,7 @@ from asyncpg import PostgresError
 
 from app.core.config import settings
 from app.core.security import get_password_hash
-from app.db.init_db_schema import init_db_schema
+from app.db.init_db_schema_and_functions import init_db_schema_and_functions
 
 
 def init_test_db():
@@ -15,7 +15,8 @@ def init_test_db():
         conn = await asyncpg.connect(settings.TEST_DATABASE_URL)
         hashed_pwd = get_password_hash("superstrongpassword")
         insert_existing_test_user = """
-            INSERT INTO users (user_uuid, username, email, is_active, password) values ('1088292a-46cc-4258-85b6-9611f09e1830', 'testuser_exists', 'testuser_exists@mail.com', true, $1);
+            INSERT INTO users (user_uuid, username, email, is_active, password)
+            VALUES ('1088292a-46cc-4258-85b6-9611f09e1830', 'testuser_exists', 'testuser_exists@mail.com', true, $1);
         """
         try:
             await conn.execute(insert_existing_test_user, hashed_pwd)
@@ -24,7 +25,7 @@ def init_test_db():
         finally:
             await conn.close()
 
-    asyncio.get_event_loop().run_until_complete(init_db_schema(test=True))
+    asyncio.get_event_loop().run_until_complete(init_db_schema_and_functions(test=True))
     asyncio.get_event_loop().run_until_complete(create_existing_test_user())
 
 
@@ -33,22 +34,15 @@ def clean_up():
         print("\n\nClearing test db...")
         conn = await asyncpg.connect(settings.TEST_DATABASE_URL)
 
-        # https://dba.stackexchange.com/a/152463
-        # drop all tables from the public schema
-        drop_tables = """
-            DO $$ DECLARE
-                tabname RECORD;
-            BEGIN
-                FOR tabname IN (SELECT tablename
-                                FROM pg_tables
-                                WHERE schemaname = 'public')
-            LOOP
-                EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(tabname.tablename) || ' CASCADE';
-            END LOOP;
-            END $$;
+        # drop schema
+        # this clears all the data, types and functions from public schema
+        drop_schema = """
+            DROP SCHEMA public CASCADE;
+            CREATE SCHEMA public;
         """
+
         try:
-            await conn.execute(drop_tables)
+            await conn.execute(drop_schema)
         except PostgresError as err:
             print(err)
         finally:

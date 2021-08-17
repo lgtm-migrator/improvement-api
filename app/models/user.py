@@ -16,21 +16,21 @@ from app.models.api_model import APIModel
 
 
 # Shared properties
-class UserBase(APIModel):
+class UserName(APIModel):
     username: str = Field(..., max_length=150)
 
 
-class User(APIModel):
+class UserBase(APIModel):
     user_uuid: UUID4
     username: str = Field(..., max_length=150)
 
 
 # Properties to receive via API on creation
-class UserCreate(UserBase):
+class UserCreate(UserName):
     password: str
 
 
-class UserDBBase(User):
+class User(UserBase):
     email: Optional[EmailStr] = Field(None, exclusiveMaximum=255)
     is_active: bool = True
     created_at: datetime
@@ -38,5 +38,5 @@ class UserDBBase(User):
 
 
 # Additional properties stored in DB
-class UserInDB(UserDBBase):
+class UserInDB(User):
     password: str

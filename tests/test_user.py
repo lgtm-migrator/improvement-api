@@ -2,13 +2,13 @@ from fastapi.testclient import TestClient
 from requests.structures import CaseInsensitiveDict  # type: ignore
 
 from app.main import app
-from app.models.user import UserDBBase
+from app.models.user import User
 
 
 client = TestClient(app)
 
 
-user_data_keys = UserDBBase.schema().get("properties").keys()
+user_data_keys = User.schema().get("properties").keys()
 
 
 def test_should_return_user_data(user_in_db):
