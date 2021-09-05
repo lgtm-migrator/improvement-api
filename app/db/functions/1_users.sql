@@ -14,6 +14,7 @@ CREATE TYPE new_user_info AS (
     username TEXT
 );
 
+
 CREATE OR REPLACE FUNCTION get_user_by_uuid (arg_user_uuid UUID)
 RETURNS SETOF user_info STABLE LANGUAGE sql AS $$
     SELECT  *
@@ -21,12 +22,14 @@ RETURNS SETOF user_info STABLE LANGUAGE sql AS $$
             WHERE users.user_uuid = arg_user_uuid;
 $$;
 
+
 CREATE OR REPLACE FUNCTION get_user_by_username (arg_username TEXT)
 RETURNS SETOF user_info STABLE LANGUAGE sql AS $$
     SELECT  *
         FROM users
             WHERE users.username = arg_username;
 $$;
+
 
 CREATE OR REPLACE FUNCTION create_user (arg_username TEXT, arg_hashed_pwd TEXT)
 RETURNS SETOF new_user_info LANGUAGE sql AS $$

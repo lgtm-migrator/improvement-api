@@ -17,7 +17,7 @@ test_user_in_db = {
 }
 
 
-test_user_in_db_password = "superstrongpassword"
+TEST_USER_IN_DB_PASSWORD = "superstrongpassword"
 
 
 test_board_in_db = {
@@ -33,7 +33,7 @@ def init_test_db():
     async def create_existing_test_user():
         conn = await asyncpg.connect(settings.TEST_DATABASE_URL)
 
-        hashed_pwd = get_password_hash(test_user_in_db_password)
+        hashed_pwd = get_password_hash(TEST_USER_IN_DB_PASSWORD)
         test_user_uuid = test_user_in_db.get("user_uuid")
         test_user_username = test_user_in_db.get("username")
         test_user_email = test_user_in_db.get("email")
@@ -106,4 +106,4 @@ def test_user():
 # user created during test db init
 @pytest.fixture
 def user_in_db():
-    return {"username": test_user_in_db.get("username"), "password": test_user_in_db_password}
+    return {"username": test_user_in_db.get("username"), "password": TEST_USER_IN_DB_PASSWORD}

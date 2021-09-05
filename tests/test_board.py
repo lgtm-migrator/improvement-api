@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 from requests.structures import CaseInsensitiveDict  # type: ignore
 
 from .conftest import test_user_in_db
-from .conftest import test_user_in_db_password
+from .conftest import TEST_USER_IN_DB_PASSWORD
 from app.main import app
 
 
@@ -27,7 +27,7 @@ def create_headers(user_in_db):
     return headers
 
 
-headers = create_headers({"username": test_user_in_db.get("username"), "password": test_user_in_db_password})
+headers = create_headers({"username": test_user_in_db.get("username"), "password": TEST_USER_IN_DB_PASSWORD})
 
 
 def create_three_new_boards():
