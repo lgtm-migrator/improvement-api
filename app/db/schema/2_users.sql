@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
     UNIQUE(email)
 );
 
+
 CREATE TRIGGER set_timestamp
 BEFORE UPDATE ON users
 FOR EACH ROW

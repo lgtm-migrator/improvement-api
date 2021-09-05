@@ -9,17 +9,53 @@ from app.core.security import get_password_hash
 from app.db.init_db_schema_and_functions import init_db_schema_and_functions
 
 
+test_user_in_db = {
+    "user_uuid": "1088292a-46cc-4258-85b6-9611f09e1830",
+    "username": "testuser_in_db",
+    "email": "testuser_in_db@mail.com",
+    "is_active": True,
+}
+
+
+TEST_USER_IN_DB_PASSWORD = "superstrongpassword"
+
+
+test_board_in_db = {
+    "board_uuid": "a4264b97-df71-442f-b3ca-b018d473a803",
+    "board_name": "test board",
+    "column_order": [],
+    "owner_uuid": test_user_in_db.get("user_uuid"),
+}
+
+
 def init_test_db():
     # create user in db matching the user_in_db fixture below
     async def create_existing_test_user():
         conn = await asyncpg.connect(settings.TEST_DATABASE_URL)
-        hashed_pwd = get_password_hash("superstrongpassword")
+
+        hashed_pwd = get_password_hash(TEST_USER_IN_DB_PASSWORD)
+        test_user_uuid = test_user_in_db.get("user_uuid")
+        test_user_username = test_user_in_db.get("username")
+        test_user_email = test_user_in_db.get("email")
+
+        test_board_uuid = test_board_in_db.get("board_uuid")
+        test_board_name = test_board_in_db.get("board_name")
+        test_board_owner_uuid = test_board_in_db.get("owner_uuid")
+
         insert_existing_test_user = """
             INSERT INTO users (user_uuid, username, email, is_active, password)
-            VALUES ('1088292a-46cc-4258-85b6-9611f09e1830', 'testuser_exists', 'testuser_exists@mail.com', true, $1);
+            VALUES ($1, $2, $3, true, $4);
         """
+        insert_existing_test_board = """
+            INSERT INTO boards (board_uuid, board_name, column_order, owner_uuid)
+            VALUES ($1, $2, NULL, $3);
+        """
+
         try:
-            await conn.execute(insert_existing_test_user, hashed_pwd)
+            await conn.execute(
+                insert_existing_test_user, test_user_uuid, test_user_username, test_user_email, hashed_pwd
+            )
+            await conn.execute(insert_existing_test_board, test_board_uuid, test_board_name, test_board_owner_uuid)
         except PostgresError as err:
             print(err)
         finally:
@@ -67,8 +103,7 @@ def test_user():
     return {"username": "testuser", "password": "verystrongpassword"}
 
 
-# use this user for tests where you need a user that already exists in db
-# without first having to create it through API
+# user created during test db init
 @pytest.fixture
 def user_in_db():
-    return {"username": "testuser_exists", "password": "superstrongpassword"}
+    return {"username": test_user_in_db.get("username"), "password": TEST_USER_IN_DB_PASSWORD}

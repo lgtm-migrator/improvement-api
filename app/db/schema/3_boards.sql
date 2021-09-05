@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS boards (
     owner_uuid UUID REFERENCES users(user_uuid) NOT NULL
 );
 
+
 CREATE TABLE IF NOT EXISTS user_boards (
     user_uuid UUID REFERENCES users(user_uuid) ON UPDATE CASCADE NOT NULL,
     board_uuid UUID REFERENCES boards(board_uuid) ON UPDATE CASCADE ON DELETE CASCADE NOT NULL,
