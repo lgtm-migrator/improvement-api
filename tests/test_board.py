@@ -6,6 +6,8 @@ from uuid import uuid4
 from fastapi.testclient import TestClient
 from requests.structures import CaseInsensitiveDict  # type: ignore
 
+from .conftest import test_user_in_db
+from .conftest import test_user_in_db_password
 from app.main import app
 
 
@@ -25,14 +27,14 @@ def create_headers(user_in_db):
     return headers
 
 
-headers = create_headers({"username": "testuser_exists", "password": "superstrongpassword"})
+headers = create_headers({"username": test_user_in_db.get("username"), "password": test_user_in_db_password})
 
 
 def create_three_new_boards():
     new_boards = []
 
     for i in range(1, 4):
-        new_boards.append({"boardName": f"test board {i}", "ownerUuid": "1088292a-46cc-4258-85b6-9611f09e1830"})
+        new_boards.append({"boardName": f"test board {i}", "ownerUuid": test_user_in_db.get("user_uuid")})
 
     return new_boards
 
@@ -54,10 +56,10 @@ def test_should_get_user_boards():
     assert response.status_code == 200
 
     data = response.json()
-    assert len(data) == 3
+    assert len(data) == 4  # three created during tests +1 during test db init
 
     for board in data:
-        assert board.get("ownerUuid") == "1088292a-46cc-4258-85b6-9611f09e1830"
+        assert board.get("ownerUuid") == test_user_in_db.get("user_uuid")
 
     first_board_uuid = data[0].get("boardUuid")
 
@@ -76,7 +78,7 @@ def test_should_update_user_board():
     updated_board = {
         "boardUuid": data[0].get("boardUuid"),  # just use some uuid from the first response
         "boardName": "test board booyaa",
-        "ownerUuid": "1088292a-46cc-4258-85b6-9611f09e1830",
+        "ownerUuid": test_user_in_db.get("user_uuid"),
         "columnOrder": [str(uuid4()), str(uuid4()), str(uuid4())],
     }
 
