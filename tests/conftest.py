@@ -1,12 +1,17 @@
 import asyncio
+from datetime import datetime
+from datetime import timedelta
 
 import asyncpg
 import pytest
 from asyncpg import PostgresError
 
+from app.api.utils import user_token_sub
 from app.core.config import settings
+from app.core.security import create_access_token
 from app.core.security import get_password_hash
 from app.db.init_db_schema_and_functions import init_db_schema_and_functions
+from app.models.user import User
 
 
 test_user_in_db = {
@@ -14,6 +19,8 @@ test_user_in_db = {
     "username": "testuser_in_db",
     "email": "testuser_in_db@mail.com",
     "is_active": True,
+    "created_at": datetime.now(),
+    "updated_at": datetime.now(),
 }
 
 
@@ -26,6 +33,11 @@ test_board_in_db = {
     "column_order": [],
     "owner_uuid": test_user_in_db.get("user_uuid"),
 }
+
+
+test_access_token = create_access_token(
+    data={"sub": user_token_sub(User(**test_user_in_db))}, expires_delta=timedelta(settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+)
 
 
 def init_test_db():
