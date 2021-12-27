@@ -86,14 +86,12 @@ async def get_board_data(board_uuid: UUID4):
 @board_router.websocket("/ws/{board_uuid}")
 async def board_ws_endpoint(websocket: WebSocket, board_uuid: UUID4):
     board_ws_manager = ConnectionManager(manager_id=board_uuid)
-    await board_ws_manager.connect(websocket)
-
-    # on connect, send existing column data
     init_board_data = await get_board_data(board_uuid)
-    await board_ws_manager.send_json_data(init_board_data, websocket)
+
+    await board_ws_manager.connect(websocket, init_board_data)
 
     try:
-        while True:
+        while websocket in board_ws_manager.active_connections:
             data_dict = await websocket.receive_json()
             crud_type = data_dict.get("crud")
 
