@@ -1,5 +1,7 @@
 from fastapi.testclient import TestClient
+from fastapi.websockets import WebSocket
 
+from .conftest import test_access_token
 from .conftest import test_board_in_db
 from app.main import app
 
@@ -10,8 +12,13 @@ test_board_uuid = test_board_in_db.get("board_uuid")
 test_board_websocket_url = f"api/board/ws/{test_board_uuid}"
 
 
+def handle_ws_auth(websocket: WebSocket):
+    websocket.send_json({"type": "authenticate", "data": test_access_token})
+
+
 def test_connecting_to_board_websocket():
     with client.websocket_connect(test_board_websocket_url) as websocket:
+        handle_ws_auth(websocket)
         data = websocket.receive_json()
 
         column_order = data.get("column_order")
@@ -24,6 +31,7 @@ def test_connecting_to_board_websocket():
 
 def test_creating_columns():
     with client.websocket_connect(test_board_websocket_url) as websocket:
+        handle_ws_auth(websocket)
         for i in range(1, 6):
             data = websocket.receive_json()
             column_order = data.get("column_order")
@@ -35,6 +43,7 @@ def test_creating_columns():
             websocket.send_json({"crud": "create", "data": column_creation_data})
 
     with client.websocket_connect(test_board_websocket_url) as websocket:
+        handle_ws_auth(websocket)
         data = websocket.receive_json()
 
         column_order = data.get("column_order")
@@ -54,6 +63,7 @@ def test_updating_columns():
     col_id_2 = ""
 
     with client.websocket_connect(test_board_websocket_url) as websocket:
+        handle_ws_auth(websocket)
         for i in range(1, 3):
             data = websocket.receive_json()
             columns = data.get("columns")
@@ -88,6 +98,7 @@ def test_updating_columns():
             websocket.send_json({"crud": "update", "data": updated_column_data})
 
     with client.websocket_connect(test_board_websocket_url) as websocket:
+        handle_ws_auth(websocket)
         data = websocket.receive_json()
         columns = data.get("columns")
         column_order = data.get("column_order")
@@ -108,6 +119,7 @@ def test_deleting_columns():
     col_id_2 = ""
 
     with client.websocket_connect(test_board_websocket_url) as websocket:
+        handle_ws_auth(websocket)
         data = websocket.receive_json()
 
         columns = data.get("columns")
@@ -123,6 +135,7 @@ def test_deleting_columns():
         websocket.send_json({"crud": "delete", "data": column_deletion_data})
 
     with client.websocket_connect(test_board_websocket_url) as websocket:
+        handle_ws_auth(websocket)
         data = websocket.receive_json()
 
         columns = data.get("columns")
@@ -138,6 +151,7 @@ def test_deleting_columns():
         websocket.send_json({"crud": "delete", "data": column_deletion_data})
 
     with client.websocket_connect(test_board_websocket_url) as websocket:
+        handle_ws_auth(websocket)
         data = websocket.receive_json()
         columns = data.get("columns")
         column_order = data.get("column_order")

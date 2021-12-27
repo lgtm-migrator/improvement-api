@@ -16,5 +16,5 @@ async def authenticate(username: str, password: str) -> Union[User, None]:
     return User(**user)
 
 
-def user_token_sub(user) -> str:
+def user_token_sub(user: User) -> str:
     return f"user_uuid:{user.user_uuid}username:{user.username}"
