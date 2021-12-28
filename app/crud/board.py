@@ -64,3 +64,13 @@ async def delete_board(conn, board_uuid: UUID4, user_uuid: UUID4):
         return deleted_board_response
     except PostgresError:
         raise HTTPException(status_code=500, detail="Error while trying to delete the board.")
+
+
+@dbconn
+async def get_board_column_order(conn, board_uuid: UUID4):
+    try:
+        column_order = await conn.fetchrow("SELECT * FROM get_board_column_order($1);", board_uuid)
+
+        return column_order
+    except PostgresError:
+        raise HTTPException(status_code=500, detail="Error while trying to fetch board column order.")

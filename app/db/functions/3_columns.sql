@@ -1,6 +1,7 @@
 CREATE TYPE column_info AS (
     column_uuid UUID,
     column_name TEXT,
+    card_order UUID[],
     board_uuid UUID
 );
 
@@ -8,8 +9,8 @@ CREATE TYPE column_info AS (
 CREATE TYPE column_and_board_column_order AS (
     column_uuid UUID,
     column_name TEXT,
-    board_uuid UUID,
-    column_order UUID[]
+    column_order UUID[],
+    board_uuid UUID
 );
 
 
@@ -122,8 +123,10 @@ BEGIN
 END $$;
 
 
-CREATE OR REPLACE FUNCTION get_board_columns_and_column_order (arg_board_uuid UUID)
-RETURNS SETOF column_and_board_column_order STABLE LANGUAGE sql AS $$
-    SELECT * FROM get_board_columns(arg_board_uuid)
-    JOIN (SELECT * FROM get_board_column_order(arg_board_uuid) AS sub) sub ON true;
+CREATE OR REPLACE FUNCTION update_single_column_card_order (arg_column_uuid UUID, arg_card_order UUID[])
+RETURNS column_card_order LANGUAGE sql AS $$
+    UPDATE columns
+        SET card_order = arg_card_order
+        WHERE column_uuid = arg_column_uuid
+        RETURNING card_order;
 $$;
