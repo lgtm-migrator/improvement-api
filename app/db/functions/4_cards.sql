@@ -7,9 +7,8 @@ CREATE TYPE card_info AS (
 );
 
 
-CREATE TYPE card_uuid_and_column_card_order AS (
-    card_uuid UUID,
-    card_order UUID[]
+CREATE TYPE card_uuid AS (
+    card_uuid UUID
 );
 
 
@@ -57,19 +56,13 @@ CREATE OR REPLACE FUNCTION create_card_and_update_column_card_order (arg_card_na
                                                                         arg_column_uuid UUID,
                                                                         arg_board_uuid UUID,
                                                                         arg_card_order UUID[])
-RETURNS SETOF card_uuid_and_column_card_order LANGUAGE plpgsql AS $$
-DECLARE
-    result card_uuid_and_column_card_order;
+RETURNS SETOF card_uuid LANGUAGE plpgsql AS $$
+    DECLARE result card_uuid;
 BEGIN
 
-    SELECT
-        card_uuid
-    INTO
-        result.card_uuid
-    FROM create_card(arg_card_name, arg_column_uuid, arg_board_uuid);
+    SELECT card_uuid INTO result FROM create_card(arg_card_name, arg_column_uuid, arg_board_uuid);
 
-    SELECT card_order INTO result.card_order
-    FROM update_single_column_card_order(arg_column_uuid, array_prepend(result.card_uuid, arg_card_order));
+    PERFORM update_single_column_card_order(arg_column_uuid, array_prepend(result.card_uuid, arg_card_order));
 
     RETURN NEXT result;
 
