@@ -1,4 +1,5 @@
 from typing import List
+from typing import Optional
 
 from pydantic import Field
 from pydantic import UUID4
@@ -11,7 +12,7 @@ class Card(APIModel):
     column_uuid: UUID4
     board_uuid: UUID4
     card_name: str = Field(..., max_length=150)
-    card_description: str
+    card_description: Optional[str]
 
 
 class CardCreate(APIModel):

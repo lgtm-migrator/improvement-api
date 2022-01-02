@@ -9,11 +9,6 @@ CREATE TYPE card_info AS (
 
 CREATE TYPE card_uuid_and_column_card_order AS (
     card_uuid UUID,
-    column_order UUID[]
-);
-
-
-CREATE TYPE column_card_order AS (
     card_order UUID[]
 );
 
@@ -83,28 +78,15 @@ END $$;
 
 CREATE OR REPLACE FUNCTION delete_card_and_update_column_card_order (arg_card_uuid UUID,
                                                                         arg_column_uuid UUID,
-                                                                        arg_column_order UUID[])
-RETURNS SETOF column_card_order LANGUAGE plpgsql AS $$
-DECLARE
-    l_column_order column_card_order;
+                                                                        arg_column_card_order UUID[])
+RETURNS void LANGUAGE plpgsql AS $$
 BEGIN
 
     PERFORM delete_card(arg_card_uuid);
 
-    SELECT column_order INTO l_column_order
-    FROM update_single_column_card_order(arg_column_uuid, arg_column_order);
-
-    RETURN NEXT l_column_order;
+    PERFORM update_single_column_card_order(arg_column_uuid, arg_column_card_order);
 
 END $$;
-
-
-CREATE OR REPLACE FUNCTION update_card_column_uuid (arg_card_uuid UUID, arg_column_uuid UUID)
-RETURNS void LANGUAGE sql AS $$
-    UPDATE cards
-        SET column_uuid = arg_column_uuid
-        WHERE card_uuid = arg_card_uuid;
-$$
 
 
 CREATE OR REPLACE FUNCTION update_card_and_order_in_columns (arg_card_uuid UUID,
@@ -122,3 +104,11 @@ BEGIN
     PERFORM update_single_column_card_order(arg_source_column_uuid, arg_source_col_card_order);
 
 END $$;
+
+
+CREATE OR REPLACE FUNCTION update_card_column_uuid (arg_card_uuid UUID, arg_column_uuid UUID)
+RETURNS void LANGUAGE sql AS $$
+    UPDATE cards
+        SET column_uuid = arg_column_uuid
+        WHERE card_uuid = arg_card_uuid;
+$$

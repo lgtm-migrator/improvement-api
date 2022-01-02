@@ -124,9 +124,8 @@ END $$;
 
 
 CREATE OR REPLACE FUNCTION update_single_column_card_order (arg_column_uuid UUID, arg_card_order UUID[])
-RETURNS column_card_order LANGUAGE sql AS $$
+RETURNS void LANGUAGE sql AS $$
     UPDATE columns
         SET card_order = arg_card_order
-        WHERE column_uuid = arg_column_uuid
-        RETURNING card_order;
+        WHERE column_uuid = arg_column_uuid;
 $$;

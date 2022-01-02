@@ -5,7 +5,9 @@ from asyncpg import PostgresError
 from fastapi import HTTPException
 from pydantic.types import UUID4
 
+from app.crud.card import update_card_and_order_in_columns
 from app.db.decorators import dbconn
+from app.models.card import CardAndOrderInColumns
 from app.models.column import Column
 from app.models.column import ColumnCreate
 
@@ -69,15 +71,15 @@ async def delete_column_and_update_board_column_order(
 
 
 @dbconn
-async def update_single_column_card_order(conn, column_uuid: UUID4, column_order: List[UUID4]):
+async def update_single_column_card_order(conn, column_uuid: UUID4, card_order: List[UUID4]):
     try:
-        column_and_board_column_order = await conn.fetchrow(
+        column_card_order = await conn.fetchrow(
             "SELECT * FROM update_single_column_card_order($1,$2);",
             column_uuid,
-            column_order,
+            card_order,
         )
 
-        return column_and_board_column_order
+        return column_card_order
     except PostgresError:
         raise HTTPException(status_code=500, detail="Error while trying to update a column's card order.")
 
@@ -93,8 +95,12 @@ async def handle_column_crud(board_uuid: str, crud_type: str, data: dict):
         updated_col_data = data.get("updated_column")
         return await update_column_and_update_board_column_order(Column(**updated_col_data), column_order)  # type: ignore
 
-    if crud_type == "update-card-order":
-        return await update_single_column_card_order(data.get("column_uuid"), column_order)
-
     if crud_type == "delete":
         return await delete_column_and_update_board_column_order(board_uuid, data.get("column_uuid"), column_order)
+
+    if crud_type == "update-card-order":
+        card_order = data.get("card_order")
+        return await update_single_column_card_order(data.get("column_uuid"), card_order)
+
+    if crud_type == "update-card-and-order-in-columns":
+        return await update_card_and_order_in_columns(CardAndOrderInColumns(**data))  # type: ignore
