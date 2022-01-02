@@ -55,6 +55,7 @@ async def init_db_schema_and_functions(test: Optional[bool] = False):
 
         await conn.execute(f"{schema} {functions}")
     except Exception as err:
+        breakpoint()
         print(err)
     finally:
         await conn.close()

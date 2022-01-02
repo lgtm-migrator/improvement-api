@@ -23,10 +23,12 @@ def test_connecting_to_board_websocket():
 
         column_order = data.get("column_order")
         columns = data.get("columns")
+        cards = data.get("cards")
 
         # should be empty when first connecting
         assert column_order == []
-        assert columns == []
+        assert columns == {}
+        assert cards == {}
 
 
 def test_creating_columns():
@@ -40,7 +42,7 @@ def test_creating_columns():
 
             column_creation_data = {"new_column": new_column, "column_order": column_order}
 
-            websocket.send_json({"crud": "create", "data": column_creation_data})
+            websocket.send_json({"target": "column", "crud": "create", "data": column_creation_data})
 
     with client.websocket_connect(test_board_websocket_url) as websocket:
         handle_ws_auth(websocket)
@@ -51,9 +53,11 @@ def test_creating_columns():
 
         assert len(column_order) == 5
         assert len(columns) == 5
-        assert columns[2].get("column_name") == "test column 3"
 
-        last_col_uuid = columns[4].get("column_uuid")
+        for i, column in enumerate(columns.values()):
+            assert column.get("column_name") == f"test column {i+1}"
+            if i == 4:
+                last_col_uuid = column.get("column_uuid")
 
         assert column_order[4] == last_col_uuid
 
@@ -66,7 +70,7 @@ def test_updating_columns():
         handle_ws_auth(websocket)
         for i in range(1, 3):
             data = websocket.receive_json()
-            columns = data.get("columns")
+            columns = list(data.get("columns").values())
             column_order = data.get("column_order")
 
             updated_column_order = [*column_order]
@@ -95,12 +99,12 @@ def test_updating_columns():
 
             updated_column_data = {"updated_column": updated_column, "column_order": updated_column_order}
 
-            websocket.send_json({"crud": "update", "data": updated_column_data})
+            websocket.send_json({"target": "column", "crud": "update", "data": updated_column_data})
 
     with client.websocket_connect(test_board_websocket_url) as websocket:
         handle_ws_auth(websocket)
         data = websocket.receive_json()
-        columns = data.get("columns")
+        columns = list(data.get("columns").values())
         column_order = data.get("column_order")
 
         last_col_id = columns[len(columns) - 1].get("column_uuid")
@@ -122,7 +126,7 @@ def test_deleting_columns():
         handle_ws_auth(websocket)
         data = websocket.receive_json()
 
-        columns = data.get("columns")
+        columns = list(data.get("columns").values())
         column_order = data.get("column_order")
 
         col_id_1 = columns[0].get("column_uuid")
@@ -132,13 +136,13 @@ def test_deleting_columns():
 
         column_deletion_data = {"column_uuid": col_id_1, "column_order": updated_column_order}
 
-        websocket.send_json({"crud": "delete", "data": column_deletion_data})
+        websocket.send_json({"target": "column", "crud": "delete", "data": column_deletion_data})
 
     with client.websocket_connect(test_board_websocket_url) as websocket:
         handle_ws_auth(websocket)
         data = websocket.receive_json()
 
-        columns = data.get("columns")
+        columns = list(data.get("columns").values())
         column_order = data.get("column_order")
 
         col_id_2 = columns[2].get("column_uuid")
@@ -148,12 +152,12 @@ def test_deleting_columns():
 
         column_deletion_data = {"column_uuid": col_id_2, "column_order": updated_column_order}
 
-        websocket.send_json({"crud": "delete", "data": column_deletion_data})
+        websocket.send_json({"target": "column", "crud": "delete", "data": column_deletion_data})
 
     with client.websocket_connect(test_board_websocket_url) as websocket:
         handle_ws_auth(websocket)
         data = websocket.receive_json()
-        columns = data.get("columns")
+        columns = list(data.get("columns").values())
         column_order = data.get("column_order")
 
         assert len(columns) == 3

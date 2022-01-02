@@ -1,4 +1,3 @@
-import json
 from typing import List
 
 from fastapi import APIRouter
@@ -12,18 +11,19 @@ from starlette.status import HTTP_404_NOT_FOUND
 from app.api.dependancies import get_current_active_user
 from app.crud.board import create_board
 from app.crud.board import delete_board
+from app.crud.board import get_board_column_order
 from app.crud.board import get_user_board
 from app.crud.board import get_user_boards
 from app.crud.board import update_board
-from app.crud.column import create_column_and_update_board_column_order
-from app.crud.column import delete_column_and_update_board_column_order
-from app.crud.column import get_board_columns_and_column_order
-from app.crud.column import update_column_and_update_board_column_order
+from app.crud.card import get_board_cards
+from app.crud.card import handle_card_crud
+from app.crud.column import get_board_columns
+from app.crud.column import handle_column_crud
 from app.models.board import Board
 from app.models.board import BoardCreate
-from app.models.column import Column
-from app.models.column import ColumnCreate
 from app.models.user import User
+from app.utils.board import transform_and_sort_column_cards
+from app.utils.board import transform_column
 from app.websocket import ConnectionManager
 
 
@@ -66,19 +66,31 @@ async def delete_user_board(board_uuid: UUID4, current_user: User = Depends(get_
 
 
 async def get_board_data(board_uuid: UUID4):
-    board_data_records = await get_board_columns_and_column_order(board_uuid)
+    board_column_records = await get_board_columns(board_uuid)
 
-    if board_data_records:
-        board_columns = [json.loads(Column(**column).json()) for column in board_data_records]
+    if not board_column_records:
+        return {"column_order": [], "columns": {}, "cards": {}}
 
-        column_order_uuid_list = board_data_records[0]["column_order"]
-        column_order = [str(col_uuid) for col_uuid in column_order_uuid_list]
+    board_column_order_record = await get_board_column_order(board_uuid)
+    board_card_records = await get_board_cards(board_uuid)
 
-        sorted_board_columns = sorted(board_columns, key=lambda column: column_order.index(column.get("column_uuid")))
+    board_columns = {str(column.get("column_uuid")): transform_column(column) for column in board_column_records}
 
-        board_data = {"column_order": column_order, "columns": sorted_board_columns}
-    else:
-        board_data = {"column_order": [], "columns": []}
+    column_order = [str(col_uuid) for col_uuid in board_column_order_record[0]] if board_column_order_record else []
+
+    sorted_board_columns = dict(sorted(board_columns.items(), key=lambda column: column_order.index(column[0])))
+
+    # {"col-uuid-1": [card1, card2], "col-uuid-2": [card4, card3]}
+    sorted_board_cards = (
+        {
+            column[0]: transform_and_sort_column_cards(board_card_records, column)
+            for column in sorted_board_columns.items()
+        }
+        if board_card_records
+        else {}
+    )
+
+    board_data = {"column_order": column_order, "columns": sorted_board_columns, "cards": sorted_board_cards}
 
     return board_data
 
@@ -93,31 +105,16 @@ async def board_ws_endpoint(websocket: WebSocket, board_uuid: UUID4):
     try:
         while websocket in board_ws_manager.active_connections:
             data_dict = await websocket.receive_json()
+            crud_target = data_dict.get("target")
             crud_type = data_dict.get("crud")
 
-            if crud_type == "create":
-                column_create_data = data_dict.get("data")
-                new_column_order = column_create_data.get("column_order")
+            if crud_target == "column":
+                await handle_column_crud(board_uuid, crud_type, data_dict.get("data"))
 
-                await create_column_and_update_board_column_order(
-                    ColumnCreate(**column_create_data.get("new_column")), new_column_order
-                )
+            if crud_target == "card":
+                await handle_card_crud(board_uuid, crud_type, data_dict.get("data"))
 
-            if crud_type == "update":
-                column_update_data = data_dict.get("data")
-                new_column_order = column_update_data.get("column_order")
-
-                await update_column_and_update_board_column_order(
-                    Column(**column_update_data.get("updated_column")), new_column_order
-                )
-
-            if crud_type == "delete":
-                delete_column_uuid = data_dict.get("data").get("column_uuid")
-                new_column_order = data_dict.get("data").get("column_order")
-
-                await delete_column_and_update_board_column_order(board_uuid, delete_column_uuid, new_column_order)
-
-            if crud_type:
+            if crud_target:
                 # update board data to everyone who's on the board
                 updated_board_data = await get_board_data(board_uuid)
                 await board_ws_manager.broadcast_json(updated_board_data)
