@@ -1,16 +1,9 @@
-import sys
-from os import pardir
-from os import path
-
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-dir_path = path.dirname(path.abspath(__file__).replace("db", ""))
-sys.path.append(path.abspath(path.join(dir_path, pardir)))
-
-from app.api.router import api_router  # noqa: E402
-from app.core.config import settings  # noqa: E402
-from app.utils.openapi import simplify_operation_ids  # noqa: E402
+from app.api.router import api_router
+from app.core.config import settings
+from app.utils.openapi import simplify_operation_ids
 
 
 app = FastAPI(title="Improvement API", redoc_url="/docs", docs_url=None)

@@ -1,16 +1,15 @@
 import asyncio
-import sys
 from os import listdir
-from os import pardir
 from os import path
 from typing import Optional
 
 import asyncpg
 
-dir_path = path.dirname(path.abspath(__file__).replace("db", ""))
-sys.path.append(path.abspath(path.join(dir_path, pardir)))
+from app.core.config import settings
 
-from app.core.config import settings  # noqa: E402
+
+dir_path = path.dirname(path.abspath(__file__).replace("db", ""))
+
 
 SCHEMA_DIR = f"{dir_path}/db/schema"
 FUNCTION_DIR = f"{dir_path}/db/functions"
