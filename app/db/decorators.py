@@ -1,6 +1,6 @@
 from typing import Callable
 
-from .utils import create_db_connection
+from app.core.config import settings
 
 
 def dbconn(db_function: Callable):
@@ -13,11 +13,9 @@ def dbconn(db_function: Callable):
     """
 
     async def decorator(*args):
-        conn = await create_db_connection()
-        try:
+        conn_pool = settings.CONN_POOL
+        async with conn_pool.acquire() as conn:
             results = await db_function(conn, *args)
-        finally:
-            await conn.close()
 
         return results
 

@@ -1,4 +1,5 @@
 from asyncpg import PostgresError
+from asyncpg.connection import Connection
 from fastapi import HTTPException
 from pydantic.types import UUID4
 
@@ -8,7 +9,7 @@ from app.models.board import BoardCreate
 
 
 @dbconn
-async def create_board(conn, board: BoardCreate):
+async def create_board(conn: Connection, board: BoardCreate):
     try:
         new_board = await conn.fetchrow("SELECT * FROM create_board($1,$2);", board.board_name, board.owner_uuid)
 
@@ -18,7 +19,7 @@ async def create_board(conn, board: BoardCreate):
 
 
 @dbconn
-async def get_user_boards(conn, user_uuid: UUID4):
+async def get_user_boards(conn: Connection, user_uuid: UUID4):
     # TODO: Change this later to also list the boards where the user is a member
     # (ie. boards related to user but where they're not the owner)
     try:
@@ -30,7 +31,7 @@ async def get_user_boards(conn, user_uuid: UUID4):
 
 
 @dbconn
-async def get_user_board(conn, user_uuid: UUID4, board_uuid: UUID4):
+async def get_user_board(conn: Connection, user_uuid: UUID4, board_uuid: UUID4):
     try:
         board = await conn.fetchrow("SELECT * FROM get_user_board($1, $2);", user_uuid, board_uuid)
 
@@ -40,7 +41,7 @@ async def get_user_board(conn, user_uuid: UUID4, board_uuid: UUID4):
 
 
 @dbconn
-async def update_board(conn, board_data: Board, user_uuid: UUID4):
+async def update_board(conn: Connection, board_data: Board, user_uuid: UUID4):
     try:
         board = await conn.fetchrow(
             "SELECT * FROM update_board($1, $2, $3, $4, $5);",
@@ -57,7 +58,7 @@ async def update_board(conn, board_data: Board, user_uuid: UUID4):
 
 
 @dbconn
-async def delete_board(conn, board_uuid: UUID4, user_uuid: UUID4):
+async def delete_board(conn: Connection, board_uuid: UUID4, user_uuid: UUID4):
     try:
         deleted_board_response = await conn.fetch("SELECT * FROM delete_board($1, $2);", board_uuid, user_uuid)
 
@@ -66,8 +67,7 @@ async def delete_board(conn, board_uuid: UUID4, user_uuid: UUID4):
         raise HTTPException(status_code=500, detail="Error while trying to delete the board.")
 
 
-@dbconn
-async def get_board_column_order(conn, board_uuid: UUID4):
+async def get_board_column_order(conn: Connection, board_uuid: UUID4):
     try:
         column_order = await conn.fetchrow("SELECT * FROM get_board_column_order($1);", board_uuid)
 
