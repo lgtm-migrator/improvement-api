@@ -6,11 +6,11 @@ authors = ["Henri Kestiö <henri.kestio@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-fastapi = "^0.70.1"
+fastapi = "^0.71.0"
 uvicorn = {extras = ["standard"], version = "^0.16.0"}
 asyncpg = "^0.25.0"
 requests = "^2.26.0"
-pydantic = {extras = ["email"], version = "^1.8.2"}
+pydantic = {extras = ["email"], version = "^1.9.0"}
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 passlib = {extras = ["argon2"], version = "^1.7.4"}
 python-dotenv = "^0.19.2"

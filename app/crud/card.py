@@ -1,6 +1,7 @@
 from typing import List
 
 from asyncpg import PostgresError
+from asyncpg.connection import Connection
 from fastapi import HTTPException
 from pydantic.types import UUID4
 
@@ -13,7 +14,7 @@ from app.models.card import CardNameOrDescriptionUpdate
 
 @dbconn
 async def create_card_and_update_column_card_order(
-    conn, card: CardCreate, board_uuid: UUID4, column_card_order: List[UUID4]
+    conn: Connection, card: CardCreate, board_uuid: UUID4, column_card_order: List[UUID4]
 ):
     try:
         new_card = await conn.fetchrow(
@@ -30,17 +31,7 @@ async def create_card_and_update_column_card_order(
 
 
 @dbconn
-async def get_board_cards(conn, board_uuid: UUID4):
-    try:
-        cards = await conn.fetch("SELECT * FROM get_board_cards($1);", board_uuid)
-
-        return cards
-    except PostgresError:
-        raise HTTPException(status_code=500, detail="Error while fetching the board cards.")
-
-
-@dbconn
-async def update_card_name_or_description(conn, card: CardNameOrDescriptionUpdate):
+async def update_card_name_or_description(conn: Connection, card: CardNameOrDescriptionUpdate):
     try:
         card = await conn.fetchrow(
             "SELECT * FROM update_card_name_or_description($1, $2, $3);",
@@ -55,7 +46,7 @@ async def update_card_name_or_description(conn, card: CardNameOrDescriptionUpdat
 
 
 @dbconn
-async def delete_card_and_update_column_card_order(conn, card: CardDelete, column_card_order: List[UUID4]):
+async def delete_card_and_update_column_card_order(conn: Connection, card: CardDelete, column_card_order: List[UUID4]):
     try:
         deleted_card_response = await conn.fetch(
             "SELECT * FROM delete_card_and_update_column_card_order($1, $2, $3);",
@@ -70,7 +61,7 @@ async def delete_card_and_update_column_card_order(conn, card: CardDelete, colum
 
 
 @dbconn
-async def update_card_and_order_in_columns(conn, data: CardAndOrderInColumns):
+async def update_card_and_order_in_columns(conn: Connection, data: CardAndOrderInColumns):
     try:
         card = await conn.fetchrow(
             "SELECT * FROM update_card_and_order_in_columns($1, $2, $3, $4, $5);",
@@ -99,3 +90,12 @@ async def handle_card_crud(board_uuid: str, crud_type: str, data: dict):
 
     if crud_type == "update-name-or-description":
         return await update_card_name_or_description(CardNameOrDescriptionUpdate(**data.get("updated_card")))  # type: ignore
+
+
+async def get_board_cards(conn: Connection, board_uuid: UUID4):
+    try:
+        cards = await conn.fetch("SELECT * FROM get_board_cards($1);", board_uuid)
+
+        return cards
+    except PostgresError:
+        raise HTTPException(status_code=500, detail="Error while fetching the board cards.")

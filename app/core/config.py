@@ -3,6 +3,8 @@ from typing import List
 from typing import Optional
 from typing import Union
 
+import asyncpg
+from asyncpg.pool import Pool
 from dotenv import load_dotenv
 from pydantic import AnyHttpUrl
 from pydantic import BaseSettings
@@ -25,6 +27,7 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str
     TEST_DATABASE_URL: Optional[str]
+    CONN_POOL = Optional[Pool]
 
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = Field(..., env="BACKEND_CORS_ORIGINS")
 
@@ -35,6 +38,11 @@ class Settings(BaseSettings):
         elif isinstance(v, (list, str)):
             return v
         raise ValueError(v)
+
+    async def create_app_connection_pool(self):
+        self.CONN_POOL = await asyncpg.create_pool(
+            self.DATABASE_URL, min_size=4, max_size=8, max_inactive_connection_lifetime=180
+        )
 
     class Config:
         case_sensitive = True

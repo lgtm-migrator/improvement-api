@@ -9,6 +9,7 @@ from starlette.responses import Response
 from starlette.status import HTTP_404_NOT_FOUND
 
 from app.api.dependancies import get_current_active_user
+from app.core.config import settings
 from app.crud.board import create_board
 from app.crud.board import delete_board
 from app.crud.board import get_board_column_order
@@ -66,33 +67,36 @@ async def delete_user_board(board_uuid: UUID4, current_user: User = Depends(get_
 
 
 async def get_board_data(board_uuid: UUID4):
-    board_column_records = await get_board_columns(board_uuid)
+    conn_pool = settings.CONN_POOL
 
-    if not board_column_records:
-        return {"column_order": [], "columns": {}, "cards": {}}
+    async with conn_pool.acquire() as conn:
+        board_column_records = await get_board_columns(conn, board_uuid)
 
-    board_column_order_record = await get_board_column_order(board_uuid)
-    board_card_records = await get_board_cards(board_uuid)
+        if not board_column_records:
+            return {"column_order": [], "columns": {}, "cards": {}}
 
-    board_columns = {str(column.get("column_uuid")): transform_column(column) for column in board_column_records}
+        board_column_order_record = await get_board_column_order(conn, board_uuid)
+        board_card_records = await get_board_cards(conn, board_uuid)
 
-    column_order = [str(col_uuid) for col_uuid in board_column_order_record[0]] if board_column_order_record else []
+        board_columns = {str(column.get("column_uuid")): transform_column(column) for column in board_column_records}
 
-    sorted_board_columns = dict(sorted(board_columns.items(), key=lambda column: column_order.index(column[0])))
+        column_order = [str(col_uuid) for col_uuid in board_column_order_record[0]] if board_column_order_record else []
 
-    # {"col-uuid-1": [card1, card2], "col-uuid-2": [card4, card3]}
-    sorted_board_cards = (
-        {
-            column[0]: transform_and_sort_column_cards(board_card_records, column)
-            for column in sorted_board_columns.items()
-        }
-        if board_card_records
-        else {}
-    )
+        sorted_board_columns = dict(sorted(board_columns.items(), key=lambda column: column_order.index(column[0])))
 
-    board_data = {"column_order": column_order, "columns": sorted_board_columns, "cards": sorted_board_cards}
+        # {"col-uuid-1": [card1, card2], "col-uuid-2": [card4, card3]}
+        sorted_board_cards = (
+            {
+                column[0]: transform_and_sort_column_cards(board_card_records, column)
+                for column in sorted_board_columns.items()
+            }
+            if board_card_records
+            else {}
+        )
 
-    return board_data
+        board_data = {"column_order": column_order, "columns": sorted_board_columns, "cards": sorted_board_cards}
+
+        return board_data
 
 
 @board_router.websocket("/ws/{board_uuid}")

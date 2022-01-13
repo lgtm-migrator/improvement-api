@@ -2,6 +2,7 @@ from typing import List
 from typing import Optional
 
 from asyncpg import PostgresError
+from asyncpg.connection import Connection
 from fastapi import HTTPException
 from pydantic.types import UUID4
 
@@ -13,17 +14,9 @@ from app.models.column import ColumnCreate
 
 
 @dbconn
-async def get_board_columns(conn, board_uuid: UUID4):
-    try:
-        board_columns = await conn.fetch("SELECT * FROM get_board_columns($1);", board_uuid)
-
-        return board_columns
-    except PostgresError:
-        raise HTTPException(status_code=500, detail="Error while fetching the board columns.")
-
-
-@dbconn
-async def create_column_and_update_board_column_order(conn, column: ColumnCreate, column_order: Optional[List[UUID4]]):
+async def create_column_and_update_board_column_order(
+    conn: Connection, column: ColumnCreate, column_order: Optional[List[UUID4]]
+):
     try:
         column_and_board_column_order = await conn.fetchrow(
             "SELECT * FROM create_column_and_update_board_column_order($1,$2,$3);",
@@ -38,7 +31,9 @@ async def create_column_and_update_board_column_order(conn, column: ColumnCreate
 
 
 @dbconn
-async def update_column_and_update_board_column_order(conn, column: Column, column_order: Optional[List[UUID4]]):
+async def update_column_and_update_board_column_order(
+    conn: Connection, column: Column, column_order: Optional[List[UUID4]]
+):
     try:
         column_and_board_column_order = await conn.fetchrow(
             "SELECT * FROM update_column_and_update_board_column_order($1,$2,$3,$4);",
@@ -55,7 +50,7 @@ async def update_column_and_update_board_column_order(conn, column: Column, colu
 
 @dbconn
 async def delete_column_and_update_board_column_order(
-    conn, board_uuid: UUID4, column_uuid: UUID4, column_order: List[UUID4]
+    conn: Connection, board_uuid: UUID4, column_uuid: UUID4, column_order: List[UUID4]
 ):
     try:
         deleted_column_response = await conn.fetchrow(
@@ -71,7 +66,7 @@ async def delete_column_and_update_board_column_order(
 
 
 @dbconn
-async def update_single_column_card_order(conn, column_uuid: UUID4, card_order: List[UUID4]):
+async def update_single_column_card_order(conn: Connection, column_uuid: UUID4, card_order: List[UUID4]):
     try:
         column_card_order = await conn.fetchrow(
             "SELECT * FROM update_single_column_card_order($1,$2);",
@@ -104,3 +99,12 @@ async def handle_column_crud(board_uuid: str, crud_type: str, data: dict):
 
     if crud_type == "update-card-and-order-in-columns":
         return await update_card_and_order_in_columns(CardAndOrderInColumns(**data))  # type: ignore
+
+
+async def get_board_columns(conn: Connection, board_uuid: UUID4):
+    try:
+        board_columns = await conn.fetch("SELECT * FROM get_board_columns($1);", board_uuid)
+
+        return board_columns
+    except PostgresError:
+        raise HTTPException(status_code=500, detail="Error while fetching the board columns.")
