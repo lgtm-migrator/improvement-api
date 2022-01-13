@@ -41,7 +41,7 @@ class Settings(BaseSettings):
 
     async def create_app_connection_pool(self):
         self.CONN_POOL = await asyncpg.create_pool(
-            self.DATABASE_URL, min_size=4, max_size=8, max_inactive_connection_lifetime=180
+            self.DATABASE_URL, min_size=3, max_size=6, max_inactive_connection_lifetime=180
         )
 
     class Config:

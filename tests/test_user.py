@@ -1,18 +1,14 @@
 from fastapi.testclient import TestClient
 from requests.structures import CaseInsensitiveDict  # type: ignore
 
-from app.main import app
 from app.models.user import User
-
-
-client = TestClient(app)
 
 
 user_data_keys = User.schema().get("properties").keys()
 
 
-def test_should_return_user_data(user_in_db):
-    response = client.post("/api/auth/access-token", data=user_in_db)
+def test_should_return_user_data(user_in_db, test_client):
+    response = test_client.post("/api/auth/access-token", data=user_in_db)
     assert response.status_code == 200
 
     data = response.json()
@@ -22,7 +18,7 @@ def test_should_return_user_data(user_in_db):
     headers["Accept"] = "application/json"
     headers["Authorization"] = f"Bearer {token}"
 
-    response = client.get("/api/user/me", headers=headers)
+    response = test_client.get("/api/user/me", headers=headers)
     assert response.status_code == 200
 
     data = response.json()

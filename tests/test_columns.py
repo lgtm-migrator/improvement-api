@@ -1,12 +1,11 @@
+from time import sleep
+
 from fastapi.testclient import TestClient
 from fastapi.websockets import WebSocket
 
 from .conftest import test_access_token
 from .conftest import test_board_in_db
-from app.main import app
 
-
-client = TestClient(app)
 
 test_board_uuid = test_board_in_db.get("board_uuid")
 test_board_websocket_url = f"api/board/ws/{test_board_uuid}"
@@ -16,8 +15,8 @@ def handle_ws_auth(websocket: WebSocket):
     websocket.send_json({"type": "authenticate", "data": test_access_token})
 
 
-def test_connecting_to_board_websocket():
-    with client.websocket_connect(test_board_websocket_url) as websocket:
+def test_connecting_to_board_websocket(test_client: TestClient):
+    with test_client.websocket_connect(test_board_websocket_url) as websocket:
         handle_ws_auth(websocket)
         data = websocket.receive_json()
 
@@ -31,8 +30,8 @@ def test_connecting_to_board_websocket():
         assert cards == {}
 
 
-def test_creating_columns():
-    with client.websocket_connect(test_board_websocket_url) as websocket:
+def test_creating_columns(test_client: TestClient):
+    with test_client.websocket_connect(test_board_websocket_url) as websocket:
         handle_ws_auth(websocket)
         for i in range(1, 6):
             data = websocket.receive_json()
@@ -44,7 +43,7 @@ def test_creating_columns():
 
             websocket.send_json({"target": "column", "crud": "create", "data": column_creation_data})
 
-    with client.websocket_connect(test_board_websocket_url) as websocket:
+    with test_client.websocket_connect(test_board_websocket_url) as websocket:
         handle_ws_auth(websocket)
         data = websocket.receive_json()
 
@@ -62,11 +61,11 @@ def test_creating_columns():
         assert column_order[4] == last_col_uuid
 
 
-def test_updating_columns():
+def test_updating_columns(test_client: TestClient):
     col_id_1 = ""
     col_id_2 = ""
 
-    with client.websocket_connect(test_board_websocket_url) as websocket:
+    with test_client.websocket_connect(test_board_websocket_url) as websocket:
         handle_ws_auth(websocket)
         for i in range(1, 3):
             data = websocket.receive_json()
@@ -101,7 +100,7 @@ def test_updating_columns():
 
             websocket.send_json({"target": "column", "crud": "update", "data": updated_column_data})
 
-    with client.websocket_connect(test_board_websocket_url) as websocket:
+    with test_client.websocket_connect(test_board_websocket_url) as websocket:
         handle_ws_auth(websocket)
         data = websocket.receive_json()
         columns = list(data.get("columns").values())
@@ -118,11 +117,11 @@ def test_updating_columns():
         assert col_with_updated_name
 
 
-def test_deleting_columns():
+def test_deleting_columns(test_client: TestClient):
     col_id_1 = ""
     col_id_2 = ""
 
-    with client.websocket_connect(test_board_websocket_url) as websocket:
+    with test_client.websocket_connect(test_board_websocket_url) as websocket:
         handle_ws_auth(websocket)
         data = websocket.receive_json()
 
@@ -138,12 +137,15 @@ def test_deleting_columns():
 
         websocket.send_json({"target": "column", "crud": "delete", "data": column_deletion_data})
 
-    with client.websocket_connect(test_board_websocket_url) as websocket:
+    with test_client.websocket_connect(test_board_websocket_url) as websocket:
         handle_ws_auth(websocket)
         data = websocket.receive_json()
 
         columns = list(data.get("columns").values())
         column_order = data.get("column_order")
+
+        assert len(columns) == 4
+        assert len(column_order) == 4
 
         col_id_2 = columns[2].get("column_uuid")
 
@@ -154,7 +156,12 @@ def test_deleting_columns():
 
         websocket.send_json({"target": "column", "crud": "delete", "data": column_deletion_data})
 
-    with client.websocket_connect(test_board_websocket_url) as websocket:
+        # Sleep added only because the data doesn't seem to update fast enough for the last with block.
+        # Happened after adding connection pool.
+        # TODO: figure out if there's a real problem here or if the tests are simply too fast??
+        sleep(0.1)
+
+    with test_client.websocket_connect(test_board_websocket_url) as websocket:
         handle_ws_auth(websocket)
         data = websocket.receive_json()
         columns = list(data.get("columns").values())

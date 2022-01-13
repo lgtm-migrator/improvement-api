@@ -5,12 +5,14 @@ from datetime import timedelta
 import asyncpg
 import pytest
 from asyncpg import PostgresError
+from starlette.testclient import TestClient
 
 from app.api.utils import user_token_sub
 from app.core.config import settings
 from app.core.security import create_access_token
 from app.core.security import get_password_hash
 from app.db.init_db_schema_and_functions import init_db_schema_and_functions
+from app.main import app
 from app.models.user import User
 
 
@@ -119,3 +121,9 @@ def test_user():
 @pytest.fixture
 def user_in_db():
     return {"username": test_user_in_db.get("username"), "password": TEST_USER_IN_DB_PASSWORD}
+
+
+@pytest.fixture
+def test_client():
+    with TestClient(app) as client:
+        yield client

@@ -1,5 +1,3 @@
-import asyncpg
-from asyncpg.pool import Pool
 from fastapi import FastAPI
 from fastapi.exceptions import HTTPException
 from starlette.middleware.cors import CORSMiddleware
