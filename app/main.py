@@ -1,3 +1,4 @@
+from aioredis import Redis
 from fastapi import FastAPI
 from fastapi.exceptions import HTTPException
 from starlette.middleware.cors import CORSMiddleware
@@ -28,7 +29,9 @@ simplify_operation_ids(app)
 @app.on_event("startup")
 async def startup_event():
     try:
-        await settings.create_app_connection_pool()
+        await settings.create_app_pg_connection_pool()
+        settings.create_app_redis()
+
     except Exception:
         raise HTTPException(status_code=500, detail="Database connection failure")
 
@@ -36,4 +39,7 @@ async def startup_event():
 @app.on_event("shutdown")
 async def shutdown_event():
     conn_pool = settings.CONN_POOL
+    redis = settings.REDIS
+
     await conn_pool.close()
+    await redis.close()

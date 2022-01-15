@@ -1,3 +1,4 @@
+from typing import Any
 from typing import List
 
 from fastapi import WebSocket
@@ -7,8 +8,7 @@ from app.api.dependancies import get_current_user
 
 
 class ConnectionManager:
-    def __init__(self, manager_id: int):
-        self.manager_id = manager_id
+    def __init__(self):
         self.active_connections: List[WebSocket] = []
 
     async def connect(self, websocket: WebSocket, init_data):
@@ -35,9 +35,5 @@ class ConnectionManager:
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
 
-    async def send_json_data(self, data: str, websocket: WebSocket):
+    async def send_json_data(self, data: str | dict[str, Any], websocket: WebSocket):
         await websocket.send_json(data)
-
-    async def broadcast_json(self, data: str):
-        for connection in self.active_connections:
-            await connection.send_json(data)

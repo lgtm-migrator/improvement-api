@@ -4,6 +4,7 @@ from typing import Optional
 from typing import Union
 
 import asyncpg
+from aioredis import Redis
 from asyncpg.pool import Pool
 from dotenv import load_dotenv
 from pydantic import AnyHttpUrl
@@ -27,7 +28,11 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str
     TEST_DATABASE_URL: Optional[str]
-    CONN_POOL = Optional[Pool]
+    CONN_POOL = Pool | None
+
+    REDIS_URL: str
+    TEST_REDIS_URL: Optional[str]
+    REDIS: Redis | None
 
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = Field(..., env="BACKEND_CORS_ORIGINS")
 
@@ -39,10 +44,13 @@ class Settings(BaseSettings):
             return v
         raise ValueError(v)
 
-    async def create_app_connection_pool(self):
+    async def create_app_pg_connection_pool(self):
         self.CONN_POOL = await asyncpg.create_pool(
             self.DATABASE_URL, min_size=3, max_size=6, max_inactive_connection_lifetime=180
         )
+
+    def create_app_redis(self):
+        self.REDIS = Redis.from_url(self.REDIS_URL, max_connections=10, decode_responses=True)
 
     class Config:
         case_sensitive = True

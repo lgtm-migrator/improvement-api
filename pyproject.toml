@@ -15,6 +15,7 @@ python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 passlib = {extras = ["argon2"], version = "^1.7.4"}
 python-dotenv = "^0.19.2"
 python-multipart = "^0.0.5"
+aioredis = "^2.0.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
