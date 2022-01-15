@@ -1,4 +1,5 @@
 from typing import Any
+from typing import Dict
 from typing import List
 
 from fastapi import WebSocket
@@ -35,5 +36,5 @@ class ConnectionManager:
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
 
-    async def send_json_data(self, data: str | dict[str, Any], websocket: WebSocket):
+    async def send_json_data(self, data: str | Dict[str, Any], websocket: WebSocket):
         await websocket.send_json(data)

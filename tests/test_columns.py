@@ -106,9 +106,7 @@ def test_updating_columns(test_client: TestClient):
         columns = list(data.get("columns").values())
         column_order = data.get("column_order")
 
-        last_col_id = columns[len(columns) - 1].get("column_uuid")
-
-        assert last_col_id == col_id_1
+        assert column_order.index(col_id_1) == 4
         assert column_order.index(col_id_2) == 2
 
         col_with_updated_name = next(
@@ -136,6 +134,7 @@ def test_deleting_columns(test_client: TestClient):
         column_deletion_data = {"column_uuid": col_id_1, "column_order": updated_column_order}
 
         websocket.send_json({"target": "column", "crud": "delete", "data": column_deletion_data})
+        sleep(0.1)
 
     with test_client.websocket_connect(test_board_websocket_url) as websocket:
         handle_ws_auth(websocket)

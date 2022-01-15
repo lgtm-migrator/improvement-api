@@ -1,4 +1,3 @@
-from aioredis import Redis
 from fastapi import FastAPI
 from fastapi.exceptions import HTTPException
 from starlette.middleware.cors import CORSMiddleware
