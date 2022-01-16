@@ -81,8 +81,9 @@ def init_test_db():
 
 def clean_up():
     async def clear_test_db():
-        print("\n\nClearing test db...")
+        print("\n\nClearing test pg db and redis...")
         conn = await asyncpg.connect(settings.TEST_DATABASE_URL)
+        redis = settings.REDIS
 
         # drop schema
         # this clears all the data, types and functions from public schema
@@ -93,6 +94,7 @@ def clean_up():
 
         try:
             await conn.execute(drop_schema)
+            await redis.flushdb(asynchronous=True)
         except PostgresError as err:
             print(err)
         finally:
@@ -104,6 +106,7 @@ def clean_up():
 def pytest_sessionstart():
     """whole test run starts."""
     settings.DATABASE_URL = settings.TEST_DATABASE_URL
+    settings.REDIS_URL = settings.TEST_REDIS_URL
     init_test_db()
 
 
