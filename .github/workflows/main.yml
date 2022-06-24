@@ -1,4 +1,4 @@
-name: Improvement API CI/CD
+name: Improvement API CI
 
 on:
   push:
@@ -58,16 +58,3 @@ jobs:
           TEST_REDIS_URL: redis://127.0.0.1:6379
           BACKEND_CORS_ORIGINS: ${{ secrets.TEST_BACKEND_CORS_ORIGINS }}
         run: poetry run pytest
-
-  cd:
-    name: Deploy to Heroku
-    needs: ci
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && needs.ci.result == 'success'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: akhileshns/heroku-deploy@v3.12.12
-        with:
-          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-          heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
-          heroku_email: ${{ secrets.HEROKU_EMAIL }}
